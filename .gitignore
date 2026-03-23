@@ -178,3 +178,9 @@ dataset_ready/
 *.log
 *.tar
 *.jsonl
+*.json
+*.pt
+*.pth
+*.safetensors
+*.bin
+*.ckpt
