@@ -276,7 +276,7 @@ def parse_args() -> argparse.Namespace:
                     help="Number of evenly-spaced frames per video (max 8).")
     ap.add_argument("--server-url", default="http://127.0.0.1:8080")
     ap.add_argument("--max-new-tokens", "-n", type=int, default=512)
-    ap.add_argument("--max-image-size", type=int, default=560)
+    ap.add_argument("--max-image-size", type=int, default=336)
     ap.add_argument("--jpeg-quality", type=int, default=85)
     ap.add_argument("--env-model", default="places365_environment_model_new.pth")
     ap.add_argument("--session-id", default="session_001")
@@ -383,6 +383,27 @@ def check_server_running(server_url: str) -> bool:
         return False
 
 
+def _find_bash() -> list[str]:
+    """Return a shell command prefix that can run a .sh script on any OS."""
+    import platform, shutil
+    if platform.system() == "Windows":
+        # Prefer Git Bash, then WSL bash
+        for candidate in [
+            r"C:\Program Files\Git\bin\bash.exe",
+            r"C:\Program Files (x86)\Git\bin\bash.exe",
+            shutil.which("bash"),   # e.g. Git Bash on PATH
+        ]:
+            if candidate and Path(candidate).exists():
+                return [candidate]
+        # Fall back to WSL
+        wsl = shutil.which("wsl")
+        if wsl:
+            return [wsl, "bash"]
+        print("[ERROR] No bash found on Windows. Install Git for Windows or WSL.")
+        sys.exit(1)
+    return ["/bin/bash"]
+
+
 def start_server_if_needed(server_url: str) -> Optional[subprocess.Popen]:
     if check_server_running(server_url):
         print("  (llama-server is already running...)")
@@ -392,7 +413,8 @@ def start_server_if_needed(server_url: str) -> Optional[subprocess.Popen]:
     if not script_path.exists():
         print(f"[ERROR] {script_path} not found")
         sys.exit(1)
-    proc = subprocess.Popen(["/bin/bash", str(script_path)],
+    bash_cmd = _find_bash()
+    proc = subprocess.Popen(bash_cmd + [str(script_path)],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                              start_new_session=True)
     for _ in range(30):
@@ -432,7 +454,7 @@ def run_video(video_path: Path, pil_imgs: list, bgr_frames: list,
         "max_tokens"        : min(max_tokens, 200),  # 2 sentences don't need more
         "repetition_penalty": 1.3,   # penalise repeating the same tokens
         "frequency_penalty" : 0.5,   # further penalise high-frequency tokens
-        "thinking"          : {"type": "enabled", "budget_tokens": 512},
+        # "thinking"       : {"type": "enabled", "budget_tokens": 512},  # disabled for speed
     }
     req = urllib.request.Request(url, data=json.dumps(data).encode(),
                                  headers={"Content-Type": "application/json"})

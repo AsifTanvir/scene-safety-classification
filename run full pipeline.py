@@ -301,7 +301,7 @@ def parse_args() -> argparse.Namespace:
                     help="RGB preview height.")
     ap.add_argument("--server-url", default="http://127.0.0.1:8080")
     ap.add_argument("--max-new-tokens", "-n", type=int, default=512)
-    ap.add_argument("--max-image-size", type=int, default=560)
+    ap.add_argument("--max-image-size", type=int, default=336)
     ap.add_argument("--jpeg-quality", type=int, default=85)
     ap.add_argument("--env-model", default="places365_environment_model_new.pth")
     ap.add_argument("--session-id", default="session_001")
@@ -536,7 +536,7 @@ def run_video(video_path: Path, pil_imgs: list, bgr_frames: list,
         "max_tokens"        : min(max_tokens, 200),  # 2 sentences don't need more
         "repetition_penalty": 1.3,   # penalise repeating the same tokens
         "frequency_penalty" : 0.5,   # further penalise high-frequency tokens
-        "thinking"          : {"type": "enabled", "budget_tokens": 512},
+        # "thinking"       : {"type": "enabled", "budget_tokens": 512},  # disabled for speed
     }
     req = urllib.request.Request(url, data=json.dumps(data).encode(),
                                  headers={"Content-Type": "application/json"})
