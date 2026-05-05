@@ -1,0 +1,74 @@
+# ── Python ─────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# ── Conda / virtual environments ───────────────────────────────────────
+.conda/
+envs/
+.venv/
+venv/
+env/
+
+# ── Model weights & large binary files ─────────────────────────────────
+*.pth
+*.pt
+*.gguf
+*.bin
+*.safetensors
+
+# ── Pipeline output ─────────────────────────────────────────────────────
+alert_output/
+output_scene_graphs/
+*.csv
+
+# ── Video & image inputs/outputs ────────────────────────────────────────
+input_video/
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.png
+*.jpg
+*.jpeg
+
+# ── Logs ────────────────────────────────────────────────────────────────
+*.log
+*.jsonl
+
+# ── Distribution / build ────────────────────────────────────────────────
+build/
+dist/
+*.egg-info/
+*.egg
+MANIFEST
+
+# ── Jupyter ─────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Windows system files ─────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ── Windows Mark of the Web (Zone Identifier sidecar files) ─────────────
+*:Zone.Identifier
+
+# ── VS Code ──────────────────────────────────────────────────────────────
+.vscode/
+
+# ── pytest / coverage ────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Misc ─────────────────────────────────────────────────────────────────
+*.tar
+*.zip
+*.gz
+.DS_Store
