@@ -278,6 +278,9 @@ hf download bartowski/Qwen_Qwen3-VL-2B-Instruct-GGUF mmproj-Qwen_Qwen3-VL-2B-Ins
 
 The pipeline uses a fine-tuned ResNet-18 (trained on Places365 with 3 classes: `classroom`, `home`, `office`) to provide environment context to the VLM.
 
+> **Download Model:** You can download the fine-tuned weights from this link:
+> [Download places365_environment_model_new.pth](https://livemissouristate-my.sharepoint.com/:f:/g/personal/mt5864s_login_missouristate_edu/IgD-woHp2LuNR6mojdEDO_A4AXVuQx7qHc31V7dEAo4IAys?e=nNMHTa)
+
 Place the weights file in the project root:
 
 ```
@@ -327,7 +330,7 @@ Wait until you see `llama server listening` in the output (~5–10 seconds on a 
 
 ### Step 12b — Run the full OAK-D Lite pipeline (live camera)
 
-> ⚠️ **Important:** This mode requires an **OAK-D Lite camera** physically connected via USB 3. The code depends on the `depthai` library to capture live video from the OAK-D Lite sensor. If you do not have an OAK-D Lite camera, use the **video-file version** in Step 12c instead.
+## > ⚠️ **Important:** This mode requires an **OAK-D Lite camera** physically connected via USB 3. The code depends on the `depthai` library to capture live video from the OAK-D Lite sensor. If you do not have an OAK-D Lite camera, use the **video-file version** in Step 12c instead.
 
 Open **Anaconda Prompt** (or a terminal with `scene-safety` activated):
 
@@ -404,6 +407,9 @@ This opens an interactive numbered list. Enter an event number to see:
 The evaluation script (`full_evaluation.py`) benchmarks both the environment classifier and VLM safety classifier against a ground truth CSV file. It reports per-video pass/fail results plus aggregate accuracy and latency metrics.
 
 ### Step 14a — Prepare the ground truth CSV
+
+> **Test Videos:** You can download a set of test videos to use for evaluation from this link:
+> [Download Test Videos](https://livemissouristate-my.sharepoint.com/:f:/g/personal/mt5864s_login_missouristate_edu/IgCB2nf7VQniS6kfqrCtRnLBAdZpX2XhlGa_MuBLNmnz_TM?e=fjetDp)
 
 Create a CSV file (e.g., `videos/ground_truth.csv`) with the following columns:
 
