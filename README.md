@@ -29,7 +29,7 @@ Real-time safety monitoring pipeline using an **OAK-D Lite** RGB camera and **Qw
 |---|---|---|
 | OS | Windows 10 (64-bit) | Windows 11 (64-bit) |
 | GPU | NVIDIA GPU, 6 GB VRAM | RTX 4500 / RTX 3090 (8 GB+) |
-| CUDA | 12.1 | 12.4 |
+| CUDA | 12.8 | 12.8+ |
 | RAM | 16 GB | 32 GB |
 | Python | 3.12 | 3.12 |
 | Camera | OAK-D Lite (USB3) | OAK-D Lite |
@@ -54,7 +54,7 @@ nvidia-smi
 You should see your GPU listed with a driver version ≥ 527. If not, download and install the latest driver from:
 👉 https://www.nvidia.com/drivers
 
-### Step 2b — Install CUDA Toolkit 12.4
+### Step 2b — Install CUDA Toolkit 12.8 (or higher)
 
 1. Go to: https://developer.nvidia.com/cuda-downloads
 2. Select: **Windows → x86_64 → 11 (or 10) → exe (local)**
@@ -70,10 +70,10 @@ nvcc --version
 
 Expected output:
 ```
-Cuda compilation tools, release 12.x, V12.x.xxx
+Cuda compilation tools, release 12.8, V12.8.xxx (or higher)
 ```
 
-> **Tip:** If `nvcc` is not found after a restart, add `C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.4\bin` to your system `PATH` manually via **System Properties → Environment Variables**.
+> **Tip:** If `nvcc` is not found after a restart, add `C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin` to your system `PATH` manually via **System Properties → Environment Variables**.
 
 ---
 
@@ -113,7 +113,7 @@ Open a **new** Anaconda Prompt (or Git Bash) and run:
 conda --version
 ```
 
-Expected: `conda 24.x.x` (or similar)
+Expected: `conda 24.x.x` (or higher)
 
 ### Step 4c — Initialize conda for Git Bash (optional but recommended)
 
@@ -143,13 +143,13 @@ conda activate scene-safety
 
 ## 6. Install Python Dependencies
 
-### Step 6a — Install PyTorch with CUDA 12.8 support
+### Step 6a — Install all dependencies
+
+`requirements.txt` already includes the PyTorch CUDA 12.8 index URL and all packages, so a single command installs everything:
 
 ```cmd
-pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements.txt
 ```
-
-> ⚠️ **Important:** Do NOT install torch from `requirements.txt` directly — it must use the CUDA-specific index URL above to get the GPU-enabled build.
 
 ### Step 6b — Verify GPU is available in PyTorch
 
@@ -163,12 +163,10 @@ True
 NVIDIA GeForce RTX XXXX
 ```
 
-If `False` is printed, PyTorch was installed without CUDA. Go back to Step 6a.
-
-### Step 6c — Install remaining dependencies
-
+If `False` is printed, PyTorch was installed without CUDA support. Reinstall:
 ```cmd
-pip install -r requirements.txt
+pip uninstall torch torchvision torchaudio -y
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 ```
 
 ---
@@ -256,19 +254,19 @@ Two GGUF files are required for the Qwen3-VL-2B model:
 
 | File | Size | Purpose |
 |---|---|---|
-| `qwen3vl-2b-fp16.gguf` | ~4.5 GB | Language model weights |
-| `qwen3vl-2b-mmproj-fp16.gguf` | ~1.0 GB | Vision projector weights |
+| `Qwen_Qwen3-VL-2B-Instruct-bf16.gguf` | ~3.4 GB | Language model weights |
+| `mmproj-Qwen_Qwen3-VL-2B-Instruct-bf16.gguf` | ~1.0 GB | Vision projector weights |
 
 ### Download from Hugging Face
 
 In your activated conda environment:
 
 ```cmd
-pip install huggingface_hub
+pip install hf
 
-huggingface-cli download bartowski/Qwen2.5-VL-2B-Instruct-GGUF qwen3vl-2b-fp16.gguf --local-dir .
+hf download bartowski/Qwen_Qwen3-VL-2B-Instruct-GGUF Qwen_Qwen3-VL-2B-Instruct-bf16.gguf --local-dir .
 
-huggingface-cli download bartowski/Qwen2.5-VL-2B-Instruct-GGUF qwen3vl-2b-mmproj-fp16.gguf --local-dir .
+hf download bartowski/Qwen_Qwen3-VL-2B-Instruct-GGUF mmproj-Qwen_Qwen3-VL-2B-Instruct-bf16.gguf --local-dir .
 ```
 
 > **Note:** Adjust the repository name/filenames to match the exact Qwen3-VL-2B GGUF release you are using. Both `.gguf` files must sit in the **project root** (same directory as `run_llama_server.sh`).
@@ -294,8 +292,8 @@ If you have trained your own model, point to it with the `--env-model` flag at r
 Open `run_llama_server.sh` in a text editor and verify these variables:
 
 ```bash
-MODEL="qwen3vl-2b-fp16.gguf"           # must be in project root
-MMPROJ="qwen3vl-2b-mmproj-fp16.gguf"   # must be in project root
+MODEL="Qwen_Qwen3-VL-2B-Instruct-bf16.gguf"           # must be in project root
+MMPROJ="mmproj-Qwen_Qwen3-VL-2B-Instruct-bf16.gguf"   # must be in project root
 BIN="llama.cpp/build/bin/llama-server"  # path to llama-server.exe (no .exe needed in Git Bash)
 ```
 
@@ -391,8 +389,8 @@ Both GGUF files must be in the **project root** (same folder as `run_llama_serve
 ### `torch.cuda.is_available()` returns `False`
 PyTorch was installed without CUDA support. Reinstall:
 ```cmd
-pip uninstall torch torchvision -y
-pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
+pip uninstall torch torchvision torchaudio -y
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 ```
 
 ### `bash: run_llama_server.sh: Permission denied`

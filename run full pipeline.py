@@ -291,8 +291,8 @@ Do NOT repeat the same phrase twice. Stop after 2 sentences."""
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description="Live OAK-D Lite Qwen3-VL safety monitor with alert generator.")
-    ap.add_argument("--chunk-seconds", type=float, default=5.0,
-                    help="Length of each camera segment to classify (default: 5).")
+    ap.add_argument("--chunk-seconds", type=float, default=3.0,
+                    help="Length of each camera segment to classify (default: 3).")
     ap.add_argument("--frames", type=int, default=6,
                     help="Number of evenly-spaced frames per chunk (capped by frames captured).")
     ap.add_argument("--oak-preview-width", type=int, default=1280,

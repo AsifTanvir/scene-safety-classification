@@ -4,8 +4,8 @@ cd "$SCRIPT_DIR" || exit 1
 
 export LD_LIBRARY_PATH="$(pwd)/llama.cpp/build/bin"
 
-MODEL="qwen3vl-2b-fp16.gguf"
-MMPROJ="qwen3vl-2b-mmproj-fp16.gguf"
+MODEL="Qwen_Qwen3-VL-2B-Instruct-bf16.gguf"
+MMPROJ="mmproj-Qwen_Qwen3-VL-2B-Instruct-bf16.gguf"
 BIN="llama.cpp/build/bin/llama-server"
 
 if [ ! -f "$MODEL" ]; then echo "Error: $MODEL not found!"; exit 1; fi
