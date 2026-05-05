@@ -325,12 +325,14 @@ Wait until you see `llama server listening` in the output (~5–10 seconds on a 
 
 > The pipeline can also auto-start `llama-server` if it isn't already running — the Python code detects Windows and uses Git Bash automatically, so Step 12a is optional.
 
-### Step 12b — Run the full OAK-D Lite pipeline
+### Step 12b — Run the full OAK-D Lite pipeline (live camera)
+
+> ⚠️ **Important:** This mode requires an **OAK-D Lite camera** physically connected via USB 3. The code depends on the `depthai` library to capture live video from the OAK-D Lite sensor. If you do not have an OAK-D Lite camera, use the **video-file version** in Step 12c instead.
 
 Open **Anaconda Prompt** (or a terminal with `scene-safety` activated):
 
 ```cmd
-:: Basic run — 5-second chunks, 6 sampled frames each
+:: Basic run — 3-second chunks, 6 sampled frames each
 python "run full pipeline.py"
 
 :: Custom chunk length and frame count
@@ -345,9 +347,39 @@ python "run full pipeline.py" --help
 
 ### Step 12c — Run the video-file version (no camera required)
 
-```cmd
-python "run video with environment classifier.py" --video C:\path\to\video.mp4
+Use this mode to classify pre-recorded video files without needing an OAK-D Lite camera.
+
+**1. Place your videos in the `videos/` folder** (or any folder you specify with `--videos-dir`):
+
 ```
+scene-safety-classification\
+└── videos\
+    ├── my_video_1.mp4
+    ├── my_video_2.avi
+    └── another_clip.mkv
+```
+
+Supported formats: `.mp4`, `.mov`, `.avi`, `.mkv`, `.webm`
+
+**2. Run the classifier on all videos in the folder:**
+
+```cmd
+python "run video with environment classifier.py"
+```
+
+**3. Or specify a custom videos directory:**
+
+```cmd
+python "run video with environment classifier.py" --videos-dir C:\path\to\my_videos
+```
+
+**4. All available options:**
+
+```cmd
+python "run video with environment classifier.py" --help
+```
+
+Each video will be classified as **SAFE** or **UNSAFE**. Unsafe events are logged to `alert_output\safety_events.csv` with annotated frames saved to `alert_output\frames\`.
 
 ---
 
@@ -430,6 +462,42 @@ python full_evaluation.py --eval-csv ./videos/ground_truth.csv --videos-dir vide
   Avg E2E Latency      : 5.35 seconds/video
 ======================================================================
 ```
+
+### Step 14e — Add your own videos to the evaluation
+
+You can extend the evaluation with your own video clips:
+
+1. **Copy your video files** into the `videos/` folder (or your custom `--videos-dir`):
+
+   ```
+   videos\
+   ├── existing_video.mp4
+   ├── my_new_test_clip.mp4        ← add here
+   └── ground_truth.csv
+   ```
+
+2. **Update `ground_truth.csv`** — add a new row for each video with the correct environment and safety label:
+
+   ```csv
+   video_name,true_environment,true_safety
+   Home fire unsafe.mp4,home,UNSAFE
+   Office Gun unsafe.mp4,office,UNSAFE
+   my_new_test_clip.mp4,home,SAFE
+   ```
+
+   - `video_name` must **exactly match** the filename (including spaces and capitalization)
+   - `true_environment` must be one of: `home`, `office`, `classroom`
+   - `true_safety` must be: `SAFE` or `UNSAFE`
+
+3. **Re-run the evaluation:**
+
+   ```cmd
+   python full_evaluation.py --eval-csv ./videos/ground_truth.csv --videos-dir videos
+   ```
+
+   Your new videos will appear in the per-video results and be included in the accuracy metrics.
+
+> **Tip:** Videos in the folder that are not listed in the CSV are skipped with a `[WARN]` message. Videos listed in the CSV but missing from the folder will cause an error — make sure filenames match exactly.
 
 ---
 
