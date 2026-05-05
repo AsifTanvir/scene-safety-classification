@@ -330,7 +330,9 @@ Wait until you see `llama server listening` in the output (~5–10 seconds on a 
 
 ### Step 12b — Run the full OAK-D Lite pipeline (live camera)
 
-## > ⚠️ **Important:** This mode requires an **OAK-D Lite camera** physically connected via USB 3. The code depends on the `depthai` library to capture live video from the OAK-D Lite sensor. If you do not have an OAK-D Lite camera, use the **video-file version** in Step 12c instead.
+> ### ⚠️ IMPORTANT
+> **This mode requires an OAK-D Lite camera physically connected via USB 3.**
+> The code depends on the `depthai` library to capture live video from the OAK-D Lite sensor. If you do not have an OAK-D Lite camera, use the **video-file version** in Step 12c instead.
 
 Open **Anaconda Prompt** (or a terminal with `scene-safety` activated):
 
