@@ -301,7 +301,7 @@ def parse_args() -> argparse.Namespace:
                     help="RGB preview height.")
     ap.add_argument("--server-url", default="http://127.0.0.1:8080")
     ap.add_argument("--max-new-tokens", "-n", type=int, default=512)
-    ap.add_argument("--max-image-size", type=int, default=336)
+    ap.add_argument("--max-image-size", type=int, default=560)
     ap.add_argument("--jpeg-quality", type=int, default=85)
     ap.add_argument("--env-model", default="places365_environment_model_new.pth")
     ap.add_argument("--session-id", default="session_001")

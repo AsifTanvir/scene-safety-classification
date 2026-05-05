@@ -19,7 +19,8 @@ Real-time safety monitoring pipeline using an **OAK-D Lite** RGB camera and **Qw
 11. [Configure the Llama Server Script](#11-configure-the-llama-server-script)
 12. [Run the Pipeline](#12-run-the-pipeline)
 13. [View the Event Log](#13-view-the-event-log)
-14. [Common Errors & Fixes](#14-common-errors--fixes)
+14. [Run the Evaluation Script](#14-run-the-evaluation-script)
+15. [Common Errors & Fixes](#15-common-errors--fixes)
 
 ---
 
@@ -366,7 +367,73 @@ This opens an interactive numbered list. Enter an event number to see:
 
 ---
 
-## 14. Common Errors & Fixes
+## 14. Run the Evaluation Script
+
+The evaluation script (`full_evaluation.py`) benchmarks both the environment classifier and VLM safety classifier against a ground truth CSV file. It reports per-video pass/fail results plus aggregate accuracy and latency metrics.
+
+### Step 14a — Prepare the ground truth CSV
+
+Create a CSV file (e.g., `videos/ground_truth.csv`) with the following columns:
+
+| Column | Description | Example Values |
+|---|---|---|
+| `video_name` | Exact filename (must match the file in `--videos-dir`) | `Home fire unsafe.mp4` |
+| `true_environment` | Expected environment label | `home`, `office`, `classroom` |
+| `true_safety` | Expected safety classification | `SAFE`, `UNSAFE` |
+
+Example `ground_truth.csv`:
+
+```csv
+video_name,true_environment,true_safety
+Home fire unsafe.mp4,home,UNSAFE
+Office Gun unsafe.mp4,office,UNSAFE
+school Gun unsafe-Elephant.mp4,classroom,UNSAFE
+```
+
+> **Note:** Videos in the `--videos-dir` folder that are not listed in the CSV will be skipped with a warning.
+
+### Step 14b — Run the evaluation
+
+```cmd
+python full_evaluation.py --eval-csv ./videos/ground_truth.csv --videos-dir videos
+```
+
+### Step 14c — Available options
+
+| Argument | Default | Description |
+|---|---|---|
+| `--eval-csv` | *(required)* | Path to the ground truth CSV file |
+| `--videos-dir` | `videos` | Directory containing the video files |
+| `--script-path` | `run video with environment classifier.py` | Path to the VLM pipeline script |
+| `--env-model` | `places365_environment_model_new.pth` | Path to environment classifier weights |
+| `--server-url` | `http://127.0.0.1:8080` | llama-server URL |
+| `--frames` | `6` | Number of evenly-spaced frames per video |
+| `--max-image-size` | `560` | Max image dimension sent to the VLM (px) |
+
+### Step 14d — Example output
+
+```
+▶ Evaluating Home fire unsafe.mp4
+  Ground Truth -> Env: HOME | Safety: UNSAFE
+  Prediction   -> Env: HOME       [Pass ✅]
+  Prediction   -> Saf: UNSAFE     [Pass ✅]
+  Latency      -> Env: 0.08s | Saf: 4.45s | Total: 4.86s
+
+======================================================================
+                          EVALUATION RESULTS
+======================================================================
+  Total Evaluated      : 21 videos
+  Environment Accuracy : 76.2% (16/21)
+  Safety Accuracy      : 76.2% (16/21)
+  Avg Env Latency      : 0.09 seconds/video
+  Avg Safety Latency   : 4.90 seconds/video
+  Avg E2E Latency      : 5.35 seconds/video
+======================================================================
+```
+
+---
+
+## 15. Common Errors & Fixes
 
 ### `CUDA out of memory`
 Reduce `-ngl` in `run_llama_server.sh` (e.g., `-ngl 60`) to offload fewer layers to GPU.

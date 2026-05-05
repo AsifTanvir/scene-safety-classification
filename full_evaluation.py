@@ -39,7 +39,7 @@ def main():
     parser.add_argument("--env-model", default="places365_environment_model_new.pth", help="Path to env model weights")
     parser.add_argument("--server-url", default="http://127.0.0.1:8080", help="llama-server URL")
     parser.add_argument("--frames", type=int, default=6)
-    parser.add_argument("--max-image-size", type=int, default=336)
+    parser.add_argument("--max-image-size", type=int, default=560)
     args = parser.parse_args()
 
     # Load the original script's functions
