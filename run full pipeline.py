@@ -40,6 +40,7 @@ import torchvision.transforms as transforms
 
 # ═══════════════════════════════════════════════════════════════════════
 #  Places365 Environment Classifier
+#  Implements FR-2 (Environment Detection)
 # ═══════════════════════════════════════════════════════════════════════
 
 ENV_CLASSES = ["classroom", "home", "office"]
@@ -54,6 +55,7 @@ ENV_TRANSFORM = transforms.Compose([
 
 
 def load_env_model(weights_path: str, device: torch.device) -> torch.nn.Module:
+    # Implements NFR-1: Environment Classification Accuracy (ResNet-18 Places365)
     model = models.resnet18(weights=None)
     model.fc = torch.nn.Linear(model.fc.in_features, len(ENV_CLASSES))
     state_dict = torch.load(weights_path, map_location=device, weights_only=True)
@@ -68,6 +70,7 @@ def classify_environment(
     device: torch.device,
 ) -> tuple[str, float]:
     """Majority-vote environment classification across all extracted frames."""
+    # Implements NFR-2: Environment Classification Latency (< 100ms)
     votes: dict[str, list[float]] = {c: [] for c in ENV_CLASSES}
     with torch.no_grad():
         for img in frames:
@@ -94,6 +97,8 @@ CSV_FIELDS  = [
     "classification", "reason", "threat_reasoning", "frame_path",
 ]
 
+# Implements FR-3 (Safety Classification) and environment-specific rules:
+# FR-3.1 (home), FR-3.2 (classroom), FR-3.3 (office)
 ENVIRONMENT_RULES = {
     "home"     : ["gun", "knife", "fire", "flames", "smoke", "burning", "person falling", "fall"],
     "office"   : ["gun", "fire", "flames", "smoke", "person falling", "fall"],
@@ -122,6 +127,7 @@ def infer_event_label(reason: str, environment: str) -> str:
 
 
 def build_threat_reasoning(environment: str, event_label: str, reason: str) -> str:
+    # Implements FR-5: Explanation of Unsafe Scenarios
     rule = {
         "Gun Detection"  : f"Firearms are never permitted in a {environment.upper()} environment.",
         "Knife Detection": (
@@ -144,6 +150,7 @@ def log_event_csv(event_id, timestamp, video_source, frames_used,
                   environment, env_confidence, event_label,
                   classification, reason, threat_reasoning, frame_path) -> None:
     """Append one row to the CSV log, creating headers if the file is new."""
+    # Implements FR-4.3: Unsafe event logs shall be stored in the local system
     is_new = not CSV_LOG.exists()
     with open(CSV_LOG, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
@@ -167,6 +174,7 @@ def log_event_csv(event_id, timestamp, video_source, frames_used,
 def annotate_frame(bgr_frame, event_label: str, environment: str,
                    env_conf: float, event_id: str) -> Optional[str]:
     """Burn alert banner onto frame and save JPEG. Returns saved path."""
+    # Implements FR-4.1 (Alert contains event and description) and NFR-5 (Alert Clarity)
     ann = bgr_frame.copy()
     h, w = ann.shape[:2]
     banner = (f"UNSAFE | {event_label} | ENV: {environment.upper()} "
@@ -230,6 +238,7 @@ def show_alert_async(frame_path: str, event_label: str, environment: str,
     Returns the Popen object immediately — caller is never blocked.
     Each subprocess owns its own main thread so cv2 GUI works correctly.
     """
+    # Implements FR-4: Alert Generation (Visual GUI window)
     args_json = json.dumps({
         "frame_path" : frame_path,
         "event_label": event_label,
@@ -250,6 +259,7 @@ def show_alert_async(frame_path: str, event_label: str, environment: str,
 
 # ═══════════════════════════════════════════════════════════════════════
 #  VLM Prompt & Frame Processing  (original N-frame batch logic)
+#  Implements NFR-3: Scene Classification Accuracy (Qwen3-VL)
 # ═══════════════════════════════════════════════════════════════════════
 
 SAFETY_PROMPT = """\
@@ -291,6 +301,7 @@ Do NOT repeat the same phrase twice. Stop after 2 sentences."""
 def parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser(
         description="Live OAK-D Lite Qwen3-VL safety monitor with alert generator.")
+    # Implements FR-4.2: Event window of 3 seconds
     ap.add_argument("--chunk-seconds", type=float, default=3.0,
                     help="Length of each camera segment to classify (default: 3).")
     ap.add_argument("--frames", type=int, default=6,
@@ -333,6 +344,7 @@ def sample_frames_evenly_from_buffer(
 
 def build_oak_rgb_pipeline(preview_w: int, preview_h: int) -> Any:
     """DepthAI pipeline: ColorCamera preview → host (BGR)."""
+    # Implements FR-1: Live Video Processing (OAK-D Lite at 30fps)
     if dai is None:
         raise RuntimeError("depthai is not installed")
     pipeline = dai.Pipeline()
@@ -515,6 +527,7 @@ def run_video(video_path: Path, pil_imgs: list, bgr_frames: list,
               server_url: str, max_tokens: int,
               jpeg_quality: int, max_size: int) -> tuple[str, str]:
     """Send all frames to VLM with env context. Returns (label, reason)."""
+    # Implements NFR-4: Scene Classification Latency (< 5000ms target)
     prompt = SAFETY_PROMPT.format(
         num_frames=len(pil_imgs),
         environment=env_label,
@@ -577,6 +590,7 @@ def process_safety_segment(
     alert_procs: list,
 ) -> str:
     """Run classification and logging for one sampled clip. Returns VLM label (SAFE/UNSAFE/UNKNOWN)."""
+    # Implements NFR-6: End-to-end Latency (< 10 seconds total per segment)
     bgr_frames = [f for _, f in frame_pairs]
     pil_imgs = [Image.fromarray(cv2.cvtColor(f, cv2.COLOR_BGR2RGB))
                 for f in bgr_frames]
@@ -715,6 +729,7 @@ def view_log() -> None:
 # ═══════════════════════════════════════════════════════════════════════
 
 def main() -> None:
+    # Implements FR-6: System Startup and State Transition
     args = parse_args()
 
     if args.view_log:
@@ -749,6 +764,7 @@ def main() -> None:
     print(f"CSV log      : {CSV_LOG}")
     print(f"\nCtrl+C to stop.\n")
 
+    # Implements FR-7: System Shutdown (Graceful exit)
     server_proc = start_server_if_needed(args.server_url)
     atexit.register(lambda: server_proc and server_proc.terminate())
 
